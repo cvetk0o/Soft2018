@@ -19,42 +19,9 @@ import math
 
 video = cv2.VideoCapture('video-9.avi')
 brojac=0
-firstFrame = None 
-#%%
-kernel = np.ones((7,7), np.uint8) 
-ret,firstFrame = video.read()
-firstFrame1=firstFrame
-hsv = cv2.cvtColor(firstFrame, cv2.COLOR_BGR2HSV)
-lower_white = np.array([0,0,180], dtype=np.uint8)
-upper_white = np.array([0,0,255], dtype=np.uint8)
-mask = cv2.inRange(hsv, lower_white, upper_white)
-        
-img = cv2.dilate(mask, kernel, iterations=1)
-        
-        
-gray = cv2.GaussianBlur(img, (21, 21), 0)
-        
+firstFrame = None
 
-        
-        
-        #frameDelta = cv2.absdiff(firstFrame, gray)
-thresh = cv2.threshold(gray, 31, 255, cv2.THRESH_BINARY)[1]
-        
-        
-        
-im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-
-
-
-
-
-
-
-
-
-#%%
-
+ret,orig_frame = video.read()
 
 
 class Broj:
@@ -85,10 +52,39 @@ class Broj:
 
 
 
+def pronadjiLinije():
+    global plavaLinija,zelenaLinija
+    frame = cv2.GaussianBlur(orig_frame, (5, 5), 0)
+    hsv= cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+   
+
+    #plava
+    mask1 = cv2.inRange(hsv, (100,150, 20), (140, 255,255))
+    edges = cv2.Canny(mask1,75,150)
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 50, None, 50, 10)
+
+    plavaLinija = lines[0][0]
+    
+    
+    mask2= cv2.inRange(hsv,(36,25,25),(70,255,255))
+    edges = cv2.Canny(mask2,75,150)
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 50, None, 50, 10)
+    
+    zelenaLinija = lines[0][0]
+    
+
+
+
+
 #lista pracenih objekata
 brojevi = []
 nestaliBrojevi = []
 
+
+
+
+
+pronadjiLinije()
 
 
 
@@ -205,15 +201,8 @@ while True :
 
 
 video.release()
-#%%
-nestao = nestaliBrojevi[0]
-print(len(nestaliBrojevi))
-for b1 in nestaliBrojevi:
-    for poz in b1.pozicije:
-        cv2.circle(firstFrame1, (round(poz[0]),round(poz[1])), 2, (0,0,255), thickness=1, lineType=8, shift=0)
 
-cv2.imshow('aa',firstFrame1)
-cv2.waitKey(10000)
+
  
 
 cv2.destroyAllWindows()
